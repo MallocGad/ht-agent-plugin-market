@@ -12,7 +12,7 @@ Confluence Wiki Manager - 完整的 Wiki 页面管理工具
 环境变量配置：
 - WIKI_BASE_URL: Confluence 基础 URL（默认: https://wiki.*.com）
 - WIKI_TOKEN: Confluence API Token（必需）
-- WIKI_DEFAULT_SPACE: 默认空间 key（可选，例如: ~huangtao）
+- WIKI_DEFAULT_SPACE: 默认空间 key（可选，例如: ~ht）
 - WIKI_DEFAULT_PARENT_PAGE: 默认父页面 ID（可选，例如: 217851921）
 """
 
@@ -381,7 +381,7 @@ async def create_wiki_page(
         config: Wiki 配置
         title: 页面标题（必需）
         content: 页面内容（必需）
-        space_key: 空间 key（例如: "~huangtao", "SPACE" 等）
+        space_key: 空间 key（例如: "~ht", "SPACE" 等）
         format: 内容格式，'html'（默认，推荐）或 'markdown'
         parent_page_id: 父页面 ID（如果为空则创建顶级页面）
 
@@ -461,7 +461,7 @@ async def create_wiki_page_with_chunks(
         config: Wiki 配置
         title: 页面标题（必需）
         content: 页面内容（必需）
-        space_key: 空间 key（例如: "~huangtao", "SPACE" 等）
+        space_key: 空间 key（例如: "~ht", "SPACE" 等）
         format: 内容格式，'html'（默认，推荐）或 'markdown'
         parent_page_id: 父页面 ID（如果为空则创建顶级页面）
         chunk_size: 每批内容的最大字节数（默认: 1MB）
@@ -775,7 +775,7 @@ def main():
     create_parser.add_argument('--title', '-t', required=True, help='页面标题（必需）')
     create_parser.add_argument('--content', '-c', help='页面内容（直接提供文本）')
     create_parser.add_argument('--file', '-f', help='页面内容（从文件读取）')
-    create_parser.add_argument('--space', '-s', help='空间 key，例如: ~huangtao, SPACE（如果未指定则使用 WIKI_DEFAULT_SPACE）')
+    create_parser.add_argument('--space', '-s', help='空间 key，例如: ~ht, SPACE（如果未指定则使用 WIKI_DEFAULT_SPACE）')
     create_parser.add_argument('--parent', '-p', help='父页面 ID（如果未指定则使用 WIKI_DEFAULT_PARENT_PAGE）')
     create_parser.add_argument('--format', choices=['html', 'markdown'],
                               default='html', help='内容格式（默认: html）')

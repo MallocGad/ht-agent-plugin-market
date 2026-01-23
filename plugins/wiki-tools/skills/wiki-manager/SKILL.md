@@ -20,7 +20,7 @@ export WIKI_BASE_URL="https://wiki.*.com"  # Confluence 基础 URL（必需）
 export WIKI_TOKEN="your-api-token-here"         # Confluence API Token（必需）
 
 # 可选：配置默认空间和父页面，简化命令行操作
-export WIKI_DEFAULT_SPACE="~huangtao"           # 默认空间 key（可选）
+export WIKI_DEFAULT_SPACE="~ht"           # 默认空间 key（可选）
 export WIKI_DEFAULT_PARENT_PAGE="*"     # 默认父页面 ID（可选）
 ```
 
@@ -48,7 +48,7 @@ pip install httpx markdownify markdown
 # 创建顶级页面（需要指定空间）
 python scripts/wiki_manager.py create \
   --title "页面标题" \
-  --space "~huangtao" \
+  --space "~ht" \
   --format html \
   --content "<h1>页面内容</h1>"
 
@@ -61,7 +61,7 @@ python scripts/wiki_manager.py create \
 # 创建子页面（指定父页面 ID）
 python scripts/wiki_manager.py create \
   --title "子页面标题" \
-  --space "~huangtao" \
+  --space "~ht" \
   --parent 12345678 \
   --format html \
   --file content.html
@@ -74,7 +74,7 @@ python scripts/wiki_manager.py create \
 # 创建大内容页面（自动分批）
 python scripts/wiki_manager.py create \
   --title "大型文档" \
-  --space "~huangtao" \
+  --space "~ht" \
   --format html \
   --file large_content.html \
   --chunk-size 1048576
@@ -104,13 +104,13 @@ python scripts/wiki_manager.py create \
 # 方案 1: 每次都指定空间和父页面
 python scripts/wiki_manager.py create \
   --title "功能文档" \
-  --space "~huangtao" \
+  --space "~ht" \
   --parent 217851921 \
   --format html \
   --content "<h1>功能列表</h1>..."
 
 # 方案 2: 配置默认值，简化命令（推荐）
-export WIKI_DEFAULT_SPACE="~huangtao"
+export WIKI_DEFAULT_SPACE="~ht"
 export WIKI_DEFAULT_PARENT_PAGE="217851921"
 
 # 现在只需指定标题和内容
@@ -380,14 +380,14 @@ def hello_world():
 # 创建简单页面
 python scripts/wiki_manager.py create \
   --title "Wiki Manager 测试页面" \
-  --space "~huangtao" \
+  --space "~ht" \
   --format html \
   --content "<h1>测试页面</h1><p>这是一个新创建的页面</p>"
 
 # 创建子页面
 python scripts/wiki_manager.py create \
   --title "子页面" \
-  --space "~huangtao" \
+  --space "~ht" \
   --parent 12345678 \
   --format html \
   --content "<p>这是 12345678 页面的子页面</p>"
@@ -500,7 +500,7 @@ export API_SECRET=\"your-api-secret\"
 # 方案 1: 手动指定分批大小
 python scripts/wiki_manager.py create \
   --title "大型设计文档" \
-  --space "~huangtao" \
+  --space "~ht" \
   --format html \
   --file large_design.html \
   --chunk-size 1048576  # 1MB
@@ -509,7 +509,7 @@ python scripts/wiki_manager.py create \
 cat part1.html part2.html part3.html > combined.html
 python scripts/wiki_manager.py create \
   --title "合并文档" \
-  --space "~huangtao" \
+  --space "~ht" \
   --format html \
   --file combined.html \
   --chunk-size 524288  # 512KB
@@ -674,7 +674,7 @@ asyncio.run(main())
 10. **监控进度**: 分批创建时会显示详细进度信息，便于监控大文档创建过程
 11. **配置默认值**: 为常用的空间和父页面配置环境变量，简化命令行操作：
     ```bash
-    export WIKI_DEFAULT_SPACE="~huangtao"
+    export WIKI_DEFAULT_SPACE="~ht"
     export WIKI_DEFAULT_PARENT_PAGE="217851921"
     ```
     这样创建页面时就无需每次都指定这些参数。

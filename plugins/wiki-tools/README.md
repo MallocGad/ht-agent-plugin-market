@@ -5,7 +5,7 @@ Comprehensive Confluence Wiki management tool for reading, updating, creating, a
 ## Installation
 
 ```bash
-/plugin install wiki-manager from huangtao-agent-plugin-market
+/plugin install wiki-manager from ht-agent-plugin-market
 ```
 
 ## Version
