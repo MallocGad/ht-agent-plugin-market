@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Confluence Wiki Manager - 完整的 Wiki 页面管理工具
+Confluence Wiki tools - 完整的 Wiki 页面管理工具
 
 功能：
 - 获取 Wiki 页面内容（支持 Markdown/HTML 格式）
@@ -743,7 +743,7 @@ async def cmd_extract_id(args):
 def main():
     """主函数"""
     parser = argparse.ArgumentParser(
-        description="Confluence Wiki Manager - Wiki 页面管理工具",
+        description="Confluence Wiki tools - Wiki 页面管理工具",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
 

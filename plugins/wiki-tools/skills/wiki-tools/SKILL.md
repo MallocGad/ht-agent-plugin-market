@@ -1,9 +1,9 @@
 ---
-name: wiki-manager
+name: wiki-tools
 description: Comprehensive Confluence Wiki management tool for reading, updating, creating, and managing Wiki pages. Use when Claude needs to work with Confluence Wiki pages for (1) Creating new pages or sub-pages, (2) Fetching page content in HTML/Markdown format, (3) Updating page content or title, (4) Appending content to existing pages, (5) Extracting page IDs from URLs, or (6) Managing Wiki documentation. Triggers include "创建 Wiki", "新建 Wiki", "更新 Wiki", "获取 Wiki 页面", "同步到 Wiki", "Wiki 文档", or any Wiki-related operations.
 ---
 
-# Wiki Manager
+# Wiki tools
 
 管理 Confluence Wiki 页面的完整工具集，支持创建、读取、更新、追加内容等操作。
 
@@ -379,7 +379,7 @@ def hello_world():
 ```bash
 # 创建简单页面
 python scripts/wiki_manager.py create \
-  --title "Wiki Manager 测试页面" \
+  --title "Wiki tools 测试页面" \
   --space "~ht" \
   --format html \
   --content "<h1>测试页面</h1><p>这是一个新创建的页面</p>"
