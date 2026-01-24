@@ -1,0 +1,5 @@
+{
+  "name": "package-plugin",
+  "description": "Package a skill into a Claude Code plugin and publish to marketplace. Use when the user wants to distribute or share a skill as a plugin.",
+  "version": "1.0.0"
+}
