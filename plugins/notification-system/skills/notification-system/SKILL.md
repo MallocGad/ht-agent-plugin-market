@@ -59,14 +59,14 @@ Edit `~/.claude/settings.json` to add the notification hooks:
   "UserPromptSubmit": [{
     "hooks": [{
       "type": "command",
-      "command": "~/.claude/scripts/task-start.sh",
+      "command": "~/.claude/scripts/system-notify/task-start.sh",
       "timeout": 5
     }]
   }],
   "Stop": [{
     "hooks": [{
       "type": "command",
-      "command": "~/.claude/scripts/task-complete.sh",
+      "command": "~/.claude/scripts/system-notify/task-complete.sh",
       "timeout": 10
     }]
   }]
@@ -80,7 +80,7 @@ The `UserPromptSubmit` hook captures the start time and initial prompt, while th
 Verify that notifications work correctly with the test script:
 
 ```bash
-~/.claude/scripts/test-notification.sh
+~/.claude/scripts/system-notify/test-notification.sh
 ```
 
 This will send a test notification through each enabled channel and display success/failure status.
@@ -333,7 +333,7 @@ Environment variables can override configuration file settings:
 2. Check System Preferences → Notifications → Terminal (or your terminal app)
 3. Ensure the terminal app has notification permissions
 4. Install terminal-notifier if missing: `brew install terminal-notifier`
-5. Check logs: `tail -f ~/.claude/logs/notification.log`
+5. Check logs: `tail -f ~/.claude/scripts/system-notify/logs/notification.log`
 
 #### Issue: DingTalk/Lark notifications not received
 
@@ -354,17 +354,17 @@ Environment variables can override configuration file settings:
 **Solutions:**
 1. Verify `enabled` is `true` and `timeThreshold` is appropriate
 2. Confirm at least one notification channel is enabled
-3. Check that task duration actually exceeds threshold: `cat ~/.claude/logs/notification.log`
+3. Check that task duration actually exceeds threshold: `cat ~/.claude/scripts/system-notify/logs/notification.log`
 4. Ensure hooks are properly configured in `~/.claude/settings.json`
-5. Run test script to verify channels work: `~/.claude/scripts/test-notification.sh`
+5. Run test script to verify channels work: `~/.claude/scripts/system-notify/test-notification.sh`
 
 #### Issue: Script permission errors
 
 **Symptoms:** "Permission denied" when running scripts
 
 **Solutions:**
-1. Check file permissions: `ls -l ~/.claude/scripts/`
-2. Fix permissions: `chmod +x ~/.claude/scripts/**/*.sh`
+1. Check file permissions: `ls -l ~/.claude/scripts/system-notify/`
+2. Fix permissions: `chmod +x ~/.claude/scripts/system-notify/**/*.sh`
 3. Run install script again: `./scripts/install.sh`
 
 #### Issue: Hook timeout warnings
@@ -400,22 +400,22 @@ All notification activities are logged:
 
 ```bash
 # Watch logs in real-time
-tail -f ~/.claude/logs/notification.log
+tail -f ~/.claude/scripts/system-notify/logs/notification.log
 
 # View recent entries
-tail -20 ~/.claude/logs/notification.log
+tail -20 ~/.claude/scripts/system-notify/logs/notification.log
 
 # Search for errors
-grep ERROR ~/.claude/logs/notification.log
+grep ERROR ~/.claude/scripts/system-notify/logs/notification.log
 
 # View specific date
-grep "2026-01-26" ~/.claude/logs/notification.log
+grep "2026-01-26" ~/.claude/scripts/system-notify/logs/notification.log
 ```
 
 #### Log File Locations
 
-- **Notification Log**: `~/.claude/logs/notification.log`
-- **Temporary State Files**: `~/.claude/tmp/claude-task-*.json` (auto-cleaned)
+- **Notification Log**: `~/.claude/scripts/system-notify/logs/notification.log`
+- **Temporary State Files**: `~/.claude/scripts/system-notify/tmp/claude-task-*.json` (auto-cleaned)
 - **Configuration**: `~/.claude/notification-config.json`
 
 #### Manual Webhook Testing
@@ -451,7 +451,7 @@ curl -X POST "https://open.feishu.cn/open-apis/bot/v2/hook/YOUR_TOKEN" \
 Comprehensive test that validates all configured channels:
 
 ```bash
-~/.claude/scripts/test-notification.sh
+~/.claude/scripts/system-notify/test-notification.sh
 ```
 
 Output will show success/failure for each enabled channel with detailed error messages if problems occur.
@@ -464,20 +464,22 @@ Output will show success/failure for each enabled channel with detailed error me
 ~/.claude/
 ├── notification-config.json          # User configuration file
 ├── settings.json                     # Claude Code settings with hooks
-├── scripts/
-│   ├── task-start.sh                 # Triggered on UserPromptSubmit event
-│   ├── task-complete.sh              # Triggered on Stop event
-│   ├── notify.sh                     # Notification dispatcher and coordinator
-│   ├── utils.sh                      # Shared utility functions
-│   ├── test-notification.sh          # Test script for validation
-│   └── notifiers/
-│       ├── mac.sh                    # Mac system notification handler
-│       ├── dingtalk.sh               # DingTalk notification handler
-│       └── lark.sh                   # Lark notification handler
-├── logs/
-│   └── notification.log              # Complete notification activity log
-└── tmp/
-    └── claude-task-*.json            # Temporary task state (auto-deleted)
+└── scripts/
+    └── system-notify/                # Notification system directory
+        ├── task-start.sh             # Triggered on UserPromptSubmit event
+        ├── task-complete.sh          # Triggered on Stop event
+        ├── notify.sh                 # Notification dispatcher and coordinator
+        ├── utils.sh                  # Shared utility functions
+        ├── test-notification.sh      # Test script for validation
+        ├── test-hook-payload.sh      # Hook payload test script
+        ├── notifiers/
+        │   ├── mac.sh                # Mac system notification handler
+        │   ├── dingtalk.sh           # DingTalk notification handler
+        │   └── lark.sh               # Lark notification handler
+        ├── logs/
+        │   └── notification.log      # Complete notification activity log
+        └── tmp/
+            └── claude-task-*.json    # Temporary task state (auto-deleted)
 ```
 
 ### Script Purposes
@@ -490,7 +492,7 @@ Output will show success/failure for each enabled channel with detailed error me
   - Stores user's prompt for inclusion in notifications
   - Creates temporary state file
 - **Execution Time**: < 50ms
-- **Side Effects**: Creates `~/.claude/tmp/claude-task-[PID].json`
+- **Side Effects**: Creates `~/.claude/scripts/system-notify/tmp/claude-task-[SESSION_ID].json`
 
 #### `task-complete.sh`
 - **Hook Event**: Stop
@@ -557,7 +559,7 @@ Output will show success/failure for each enabled channel with detailed error me
    - `task-start.sh` hook executes
    - Captures current timestamp
    - Stores prompt text and task metadata
-   - Creates temporary state file: `~/.claude/tmp/claude-task-[PID].json`
+   - Creates temporary state file: `~/.claude/scripts/system-notify/tmp/claude-task-[SESSION_ID].json`
 
 2. **Task Execution Phase**
    - Claude Code processes the user's request
@@ -574,7 +576,7 @@ Output will show success/failure for each enabled channel with detailed error me
      - `notify.sh` reads configuration
      - `notify.sh` calls enabled notifier scripts in parallel
      - Each notifier sends notification to its respective channel
-     - Results logged to `~/.claude/logs/notification.log`
+     - Results logged to `~/.claude/scripts/system-notify/logs/notification.log`
    - Cleans up temporary state file
 
 4. **Notification Delivery**
@@ -665,11 +667,8 @@ export CLAUDE_NOTIFICATION_THRESHOLD=5  # Lower threshold for testing
 To completely remove the notification system:
 
 ```bash
-# Remove scripts directory
-rm -rf ~/.claude/scripts
-
-# Remove logs directory
-rm -rf ~/.claude/logs
+# Remove notification system directory
+rm -rf ~/.claude/scripts/system-notify
 
 # Remove configuration
 rm -f ~/.claude/notification-config.json
@@ -709,8 +708,8 @@ Located in the plugin directory `plugins/notification-system/scripts/`:
 
 ### Resources
 
-1. **Check Logs**: `tail -f ~/.claude/logs/notification.log`
-2. **Run Test Script**: `~/.claude/scripts/test-notification.sh`
+1. **Check Logs**: `tail -f ~/.claude/scripts/system-notify/logs/notification.log`
+2. **Run Test Script**: `~/.claude/scripts/system-notify/test-notification.sh`
 3. **Enable Debug Mode**: `export CLAUDE_NOTIFICATION_DEBUG=1`
 4. **Review Source Scripts**: Check the script contents to understand behavior
 5. **Verify Configuration**: Validate JSON syntax in `~/.claude/notification-config.json`

@@ -32,12 +32,14 @@ main() {
 
     # 定义目标目录
     CLAUDE_DIR="$HOME/.claude"
-    SCRIPTS_DIR="$CLAUDE_DIR/scripts"
-    LOGS_DIR="$CLAUDE_DIR/logs"
+    SYSTEM_NOTIFY_DIR="$CLAUDE_DIR/scripts/system-notify"
+    NOTIFIERS_DIR="$SYSTEM_NOTIFY_DIR/notifiers"
+    LOGS_DIR="$SYSTEM_NOTIFY_DIR/logs"
+    TMP_DIR="$SYSTEM_NOTIFY_DIR/tmp"
 
     # 创建目录结构
     print_info "创建目录结构..."
-    if ! mkdir -p "$SCRIPTS_DIR/notifiers" "$LOGS_DIR" 2>/dev/null; then
+    if ! mkdir -p "$NOTIFIERS_DIR" "$LOGS_DIR" "$TMP_DIR" 2>/dev/null; then
         print_error "无法创建目录，请检查 $HOME/.claude 的写入权限"
         exit 1
     fi
@@ -70,14 +72,15 @@ main() {
     # 复制脚本文件
     print_info "复制脚本文件..."
 
-    # 获取当前脚本所在的项目目录
-    NOTIFIERS_DIR="$SCRIPTS_DIR/notifiers"
-
     # 复制主脚本
-    cp "$PROJECT_DIR/scripts/task-start.sh" "$SCRIPTS_DIR/"
-    cp "$PROJECT_DIR/scripts/task-complete.sh" "$SCRIPTS_DIR/"
-    cp "$PROJECT_DIR/scripts/notify.sh" "$SCRIPTS_DIR/"
-    cp "$PROJECT_DIR/scripts/utils.sh" "$SCRIPTS_DIR/"
+    cp "$PROJECT_DIR/scripts/task-start.sh" "$SYSTEM_NOTIFY_DIR/"
+    cp "$PROJECT_DIR/scripts/task-complete.sh" "$SYSTEM_NOTIFY_DIR/"
+    cp "$PROJECT_DIR/scripts/notify.sh" "$SYSTEM_NOTIFY_DIR/"
+    cp "$PROJECT_DIR/scripts/utils.sh" "$SYSTEM_NOTIFY_DIR/"
+
+    # 复制测试脚本
+    cp "$PROJECT_DIR/scripts/test-notification.sh" "$SYSTEM_NOTIFY_DIR/"
+    cp "$PROJECT_DIR/scripts/test-hook-payload.sh" "$SYSTEM_NOTIFY_DIR/"
 
     # 复制通知器脚本
     cp "$PROJECT_DIR/scripts/notifiers/mac.sh" "$NOTIFIERS_DIR/"
@@ -88,7 +91,7 @@ main() {
 
     # 设置执行权限
     print_info "设置脚本执行权限..."
-    chmod +x "$SCRIPTS_DIR"/*.sh
+    chmod +x "$SYSTEM_NOTIFY_DIR"/*.sh
     chmod +x "$NOTIFIERS_DIR"/*.sh
     print_info "权限设置完成"
 
@@ -103,28 +106,42 @@ main() {
     echo "   vi ~/.claude/notification-config.json"
     echo ""
     echo "2. 配置 Claude Code hooks："
-    echo "   在 ~/.claude/settings.json 中添加:"
+    echo "   在 ~/.claude/settings.json 中添加或更新 'hooks' 配置:"
     cat <<'EOF'
    {
-     "UserPromptSubmit": [{
-       "hooks": [{
-         "type": "command",
-         "command": "~/.claude/scripts/task-start.sh",
-         "timeout": 5
-       }]
-     }],
-     "Stop": [{
-       "hooks": [{
-         "type": "command",
-         "command": "~/.claude/scripts/task-complete.sh",
-         "timeout": 10
-       }]
-     }]
+     "hooks": {
+       "UserPromptSubmit": [
+         {
+           "hooks": [
+             {
+               "type": "command",
+               "command": "bash ~/.claude/scripts/system-notify/task-start.sh",
+               "timeout": 5
+             }
+           ]
+         }
+       ],
+       "Stop": [
+         {
+           "hooks": [
+             {
+               "type": "command",
+               "command": "bash ~/.claude/scripts/system-notify/task-complete.sh",
+               "timeout": 10
+             }
+           ]
+         }
+       ]
+     }
    }
 EOF
     echo ""
     echo "3. 测试通知功能："
-    echo "   ~/.claude/scripts/test-notification.sh"
+    echo "   # 基本通知测试"
+    echo "   ~/.claude/scripts/system-notify/test-notification.sh"
+    echo ""
+    echo "   # 完整 Hook Payload 测试"
+    echo "   ~/.claude/scripts/system-notify/test-hook-payload.sh"
     echo ""
     echo "=========================================="
 }
