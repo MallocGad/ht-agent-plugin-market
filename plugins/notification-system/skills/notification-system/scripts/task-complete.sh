@@ -8,36 +8,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/utils.sh"
 
-# 从 transcript 中提取最后一条 assistant 消息
-extract_summary_from_transcript() {
-    local transcript_path="$1"
-    local max_length="${2:-100}"
-
-    if [ ! -f "$transcript_path" ]; then
-        return 1
-    fi
-
-    # 获取最后一条 assistant 消息的摘要
-    # 这是一个简化的提取方式，实际的格式取决于 transcript 的结构
-    local summary=""
-
-    # 尝试从 transcript 中提取最后的有意义的内容
-    if command -v jq &> /dev/null; then
-        # 如果 transcript 是 JSON 格式
-        summary=$(jq -r '.. | objects | select(.role? == "assistant") | .text? // .content? // empty' "$transcript_path" 2>/dev/null | tail -1)
-    fi
-
-    # 如果失败或不是 JSON，尝试简单的文本提取
-    if [ -z "$summary" ]; then
-        summary=$(tail -n 50 "$transcript_path" | grep -v "^#" | grep -v "^$" | tail -1)
-    fi
-
-    if [ -n "$summary" ]; then
-        # 截断到指定长度
-        echo "$summary" | head -c "$max_length"
-    fi
-}
-
 main() {
     # 从 stdin 读取 JSON payload
     local input=$(cat)
