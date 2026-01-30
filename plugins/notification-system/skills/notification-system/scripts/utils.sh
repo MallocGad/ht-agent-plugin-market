@@ -5,7 +5,7 @@
 # 配置文件和日志路径
 CLAUDE_DIR="$HOME/.claude"
 SYSTEM_NOTIFY_DIR="$CLAUDE_DIR/scripts/system-notify"
-CONFIG_FILE="$CLAUDE_DIR/notification-config.json"
+CONFIG_FILE="$SYSTEM_NOTIFY_DIR/notification-config.json"
 LOG_FILE="$SYSTEM_NOTIFY_DIR/logs/notification.log"
 TMP_DIR="$SYSTEM_NOTIFY_DIR/tmp"
 

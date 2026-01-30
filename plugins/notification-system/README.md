@@ -13,7 +13,7 @@ Claude Code 长任务完成通知系统。支持 Mac 系统通知、钉钉和飞
 ## 核心改进 (v1.0.1)
 
 - ✅ 正确处理 Stop hook 的 JSON payload（包括 session_id、transcript_path 等）
-- ✅ 从 transcript 中智能提取最后的 assistant 消息作为通知摘要
+- ✅ 从 prompt 读取原始任务描述作为通知摘要
 - ✅ 支持完整的 hook 上下文信息（工作目录、权限模式等）
 - ✅ 提供完整的示例脚本展示高级用法
 

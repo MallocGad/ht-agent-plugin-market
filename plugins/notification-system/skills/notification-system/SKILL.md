@@ -91,7 +91,7 @@ This will send a test notification through each enabled channel and display succ
 
 Mac notifications are the simplest channel to set up and work out of the box on macOS systems.
 
-**Configuration in `~/.claude/notification-config.json`:**
+**Configuration in `~/.claude/scripts/system-notify/notification-config.json`:**
 
 ```json
 {
@@ -242,7 +242,7 @@ Completion Time: 2026-01-26 14:30:45
 
 ### Complete Configuration File
 
-A complete `~/.claude/notification-config.json` with all options:
+A complete `~/.claude/scripts/system-notify/notification-config.json` with all options:
 
 ```json
 {
@@ -416,7 +416,7 @@ grep "2026-01-26" ~/.claude/scripts/system-notify/logs/notification.log
 
 - **Notification Log**: `~/.claude/scripts/system-notify/logs/notification.log`
 - **Temporary State Files**: `~/.claude/scripts/system-notify/tmp/claude-task-*.json` (auto-cleaned)
-- **Configuration**: `~/.claude/notification-config.json`
+- **Configuration**: `~/.claude/scripts/system-notify/notification-config.json`
 
 #### Manual Webhook Testing
 
@@ -462,10 +462,10 @@ Output will show success/failure for each enabled channel with detailed error me
 
 ```
 ~/.claude/
-├── notification-config.json          # User configuration file
 ├── settings.json                     # Claude Code settings with hooks
 └── scripts/
     └── system-notify/                # Notification system directory
+        ├── notification-config.json   # User configuration file
         ├── task-start.sh             # Triggered on UserPromptSubmit event
         ├── task-complete.sh          # Triggered on Stop event
         ├── notify.sh                 # Notification dispatcher and coordinator
@@ -670,9 +670,6 @@ To completely remove the notification system:
 # Remove notification system directory
 rm -rf ~/.claude/scripts/system-notify
 
-# Remove configuration
-rm -f ~/.claude/notification-config.json
-
 # Remove hooks from ~/.claude/settings.json
 # (manually edit to remove the hooks configuration)
 ```
@@ -694,10 +691,7 @@ Located in the plugin directory `plugins/notification-system/scripts/`:
 - `notifiers/mac.sh` - Mac notifications
 - `notifiers/dingtalk.sh` - DingTalk notifications
 - `notifiers/lark.sh` - Lark notifications
-
-### Configuration Files
-
-- `config/notification-config.json` - Default configuration template
+- `notification-config.json` - Default configuration template
 
 ### Documentation
 
@@ -712,7 +706,7 @@ Located in the plugin directory `plugins/notification-system/scripts/`:
 2. **Run Test Script**: `~/.claude/scripts/system-notify/test-notification.sh`
 3. **Enable Debug Mode**: `export CLAUDE_NOTIFICATION_DEBUG=1`
 4. **Review Source Scripts**: Check the script contents to understand behavior
-5. **Verify Configuration**: Validate JSON syntax in `~/.claude/notification-config.json`
+5. **Verify Configuration**: Validate JSON syntax in `~/.claude/scripts/system-notify/notification-config.json`
 
 ### Support Steps
 

@@ -23,6 +23,44 @@ print_warning() {
     echo -e "${YELLOW}[WARNING]${NC} $1"
 }
 
+# 打印 hooks 配置示例
+print_hooks_config() {
+    echo ""
+    echo "=========================================="
+    echo "请手动添加以下配置到 ~/.claude/settings.json:"
+    echo "=========================================="
+    cat <<'EOF'
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/system-notify/task-start.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/system-notify/task-complete.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
+EOF
+    echo "=========================================="
+}
+
+
 main() {
     print_info "开始安装 Claude Code 通知系统..."
 
@@ -45,12 +83,12 @@ main() {
     fi
 
     # 如果配置文件不存在，创建默认配置
-    CONFIG_FILE="$CLAUDE_DIR/notification-config.json"
+    CONFIG_FILE="$SYSTEM_NOTIFY_DIR/notification-config.json"
     if [ ! -f "$CONFIG_FILE" ]; then
         print_info "创建默认配置文件..."
 
         # 检查源配置文件是否存在
-        SOURCE_CONFIG="$PROJECT_DIR/config/notification-config.json"
+        SOURCE_CONFIG="$PROJECT_DIR/notification-config.json"
         if [ ! -f "$SOURCE_CONFIG" ]; then
             print_error "源配置文件不存在: $SOURCE_CONFIG"
             print_error "请检查安装包完整性"
@@ -95,48 +133,92 @@ main() {
     chmod +x "$NOTIFIERS_DIR"/*.sh
     print_info "权限设置完成"
 
-    # 打印后续配置说明
+    # 配置 hooks
+    print_info "配置 Claude Code hooks..."
+    SETTINGS_FILE="$CLAUDE_DIR/settings.json"
+
+    # 检查 jq 是否可用
+    if ! command -v jq &> /dev/null; then
+        print_warning "jq 未安装，无法自动配置 hooks"
+        print_warning "请手动添加 hooks 配置到 ~/.claude/settings.json"
+        print_hooks_config
+        exit 0
+    fi
+
+    # 如果 settings.json 不存在，创建空配置
+    if [ ! -f "$SETTINGS_FILE" ]; then
+        echo '{}' > "$SETTINGS_FILE"
+        print_info "已创建 settings.json 文件"
+    fi
+
+    # 备份原配置
+    cp "$SETTINGS_FILE" "$SETTINGS_FILE.backup"
+    print_info "已备份原配置到 $SETTINGS_FILE.backup"
+
+    # 定义 hooks 配置
+    local TASK_START_CMD="bash ~/.claude/scripts/system-notify/task-start.sh"
+    local TASK_COMPLETE_CMD="bash ~/.claude/scripts/system-notify/task-complete.sh"
+
+    # 使用 jq 合并 hooks 配置
+    local temp_file=$(mktemp)
+    jq --arg start_cmd "$TASK_START_CMD" \
+       --arg complete_cmd "$TASK_COMPLETE_CMD" '
+    # 确保 hooks 字段存在
+    .hooks //= {} |
+
+    # 配置 UserPromptSubmit hook
+    .hooks.UserPromptSubmit //= [] |
+    .hooks.UserPromptSubmit |=
+        if any(.[].hooks[]?; .command == $start_cmd) then
+            .
+        else
+            . + [{
+                "hooks": [{
+                    "type": "command",
+                    "command": $start_cmd,
+                    "timeout": 5
+                }]
+            }]
+        end |
+
+    # 配置 Stop hook
+    .hooks.Stop //= [] |
+    .hooks.Stop |=
+        if any(.[].hooks[]?; .command == $complete_cmd) then
+            .
+        else
+            . + [{
+                "hooks": [{
+                    "type": "command",
+                    "command": $complete_cmd,
+                    "timeout": 10
+                }]
+            }]
+        end
+    ' "$SETTINGS_FILE" > "$temp_file"
+
+    # 验证生成的 JSON 是否有效
+    if jq empty "$temp_file" 2>/dev/null; then
+        mv "$temp_file" "$SETTINGS_FILE"
+        print_info "✓ Hooks 配置已添加到 $SETTINGS_FILE"
+    else
+        print_error "生成的配置 JSON 无效，已回滚"
+        mv "$SETTINGS_FILE.backup" "$SETTINGS_FILE"
+        rm -f "$temp_file"
+        exit 1
+    fi
+
+    # 打印后续说明
     print_info "安装成功！"
     echo ""
     echo "=========================================="
-    echo "后续配置步骤："
+    echo "后续步骤："
     echo "=========================================="
     echo ""
     echo "1. 编辑配置文件（可选）："
-    echo "   vi ~/.claude/notification-config.json"
+    echo "   vi ~/.claude/scripts/system-notify/notification-config.json"
     echo ""
-    echo "2. 配置 Claude Code hooks："
-    echo "   在 ~/.claude/settings.json 中添加或更新 'hooks' 配置:"
-    cat <<'EOF'
-   {
-     "hooks": {
-       "UserPromptSubmit": [
-         {
-           "hooks": [
-             {
-               "type": "command",
-               "command": "bash ~/.claude/scripts/system-notify/task-start.sh",
-               "timeout": 5
-             }
-           ]
-         }
-       ],
-       "Stop": [
-         {
-           "hooks": [
-             {
-               "type": "command",
-               "command": "bash ~/.claude/scripts/system-notify/task-complete.sh",
-               "timeout": 10
-             }
-           ]
-         }
-       ]
-     }
-   }
-EOF
-    echo ""
-    echo "3. 测试通知功能："
+    echo "2. 测试通知功能："
     echo "   # 基本通知测试"
     echo "   ~/.claude/scripts/system-notify/test-notification.sh"
     echo ""
