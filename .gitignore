@@ -1,0 +1,9 @@
+# Git worktrees
+.worktrees/
+
+# IDE
+.idea/
+*.iml
+
+# OS
+.DS_Store
