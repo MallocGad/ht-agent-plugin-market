@@ -74,6 +74,7 @@ main() {
     NOTIFIERS_DIR="$SYSTEM_NOTIFY_DIR/notifiers"
     LOGS_DIR="$SYSTEM_NOTIFY_DIR/logs"
     TMP_DIR="$SYSTEM_NOTIFY_DIR/tmp"
+    STATE_DIR="$SYSTEM_NOTIFY_DIR/state"
 
     # 创建目录结构
     print_info "创建目录结构..."
@@ -81,6 +82,14 @@ main() {
         print_error "无法创建目录，请检查 $HOME/.claude 的写入权限"
         exit 1
     fi
+
+    # 创建状态目录（包含敏感信息，需要严格权限）
+    if ! mkdir -p "$STATE_DIR" 2>/dev/null; then
+        print_error "无法创建状态目录: $STATE_DIR"
+        exit 1
+    fi
+    chmod 700 "$STATE_DIR"
+    print_info "状态目录已创建: $STATE_DIR (权限: 700)"
 
     # 如果配置文件不存在，创建默认配置
     CONFIG_FILE="$SYSTEM_NOTIFY_DIR/notification-config.json"
@@ -113,12 +122,8 @@ main() {
     # 复制主脚本
     cp "$PROJECT_DIR/scripts/task-start.sh" "$SYSTEM_NOTIFY_DIR/"
     cp "$PROJECT_DIR/scripts/task-complete.sh" "$SYSTEM_NOTIFY_DIR/"
-    cp "$PROJECT_DIR/scripts/notify.sh" "$SYSTEM_NOTIFY_DIR/"
+    cp "$PROJECT_DIR/scripts/task-monitor-daemon.sh" "$SYSTEM_NOTIFY_DIR/"
     cp "$PROJECT_DIR/scripts/utils.sh" "$SYSTEM_NOTIFY_DIR/"
-
-    # 复制测试脚本
-    cp "$PROJECT_DIR/scripts/test-notification.sh" "$SYSTEM_NOTIFY_DIR/"
-    cp "$PROJECT_DIR/scripts/test-hook-payload.sh" "$SYSTEM_NOTIFY_DIR/"
 
     # 复制通知器脚本
     cp "$PROJECT_DIR/scripts/notifiers/mac.sh" "$NOTIFIERS_DIR/"
@@ -218,12 +223,16 @@ main() {
     echo "1. 编辑配置文件（可选）："
     echo "   vi ~/.claude/scripts/system-notify/notification-config.json"
     echo ""
-    echo "2. 测试通知功能："
-    echo "   # 基本通知测试"
-    echo "   ~/.claude/scripts/system-notify/test-notification.sh"
+    echo "2. 注册的 Hooks："
+    echo "   - UserPromptSubmit: 记录任务开始或重置静默计时器"
+    echo "   - Stop: 任务完成时更新状态并启动监控守护进程"
     echo ""
-    echo "   # 完整 Hook Payload 测试"
-    echo "   ~/.claude/scripts/system-notify/test-hook-payload.sh"
+    echo "3. 功能说明："
+    echo "   - UserPromptSubmit hook 同时处理任务开始和用户后续输入"
+    echo "   - 新任务时创建状态文件，后续输入时重置静默计时器"
+    echo "   - 当任务静默时间超过阈值(默认15秒)，会自动发送通知"
+    echo "   - 守护进程会在后台监控任务状态"
+    echo "   - 状态文件位置: ~/.claude/scripts/system-notify/state/"
     echo ""
     echo "=========================================="
 }

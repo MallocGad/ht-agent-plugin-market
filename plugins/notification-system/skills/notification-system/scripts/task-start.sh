@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # scripts/task-start.sh
-# UserPromptSubmit hook - 记录任务开始时间
+# UserPromptSubmit hook - 记录任务开始时间或重置静默计时器
 
 set -euo pipefail
 
@@ -37,29 +37,39 @@ main() {
         exit 1
     fi
 
-    # 生成时间戳
-    local timestamp=$(date +%s)
+    # 初始化状态目录
+    init_state_dir
 
-    # 清理提示中的特殊字符
-    prompt=$(echo "$prompt" | tr -d '\n\r' | sed 's/"/\\"/g')
+    # 获取当前时间戳
+    local current_time=$(get_current_timestamp)
 
-    # 创建状态文件
-    # 确保 tmp 目录存在
-    mkdir -p "$TMP_DIR" 2>/dev/null || true
-    local state_file="$TMP_DIR/claude-task-${session_id}.json"
-
-    cat > "$state_file" <<EOF
-{
-  "startTime": $timestamp,
-  "prompt": "$prompt"
-}
-EOF
+    # 检查状态文件是否已存在
+    local state_file=$(get_state_file_path "$session_id")
 
     if [ -f "$state_file" ]; then
-        log_info "任务开始: session=$session_id, timestamp=$timestamp"
+        # 状态文件已存在 - 这是用户的后续输入
+        # 重置静默计时器和通知标记，更新 prompt，清空 last_response_time
+        write_state_file "$session_id" "start_time" "$current_time"
+        write_state_file "$session_id" "prompt" "$prompt"
+        write_state_file "$session_id" "last_response_time" ""
+        write_state_file "$session_id" "notification_sent" "false"
+
+        log_info "用户输入检测: session=$session_id, reset_time=$current_time"
+        log_success "静默计时器已重置: session=$session_id"
     else
-        log_error "创建状态文件失败: $state_file"
-        exit 1
+        # 状态文件不存在 - 这是新任务开始
+        # 创建新的状态文件
+        write_state_file "$session_id" "task_id" "$session_id"
+        write_state_file "$session_id" "start_time" "$current_time"
+        write_state_file "$session_id" "prompt" "$prompt"
+
+        # 验证状态文件是否创建成功
+        if [ -f "$state_file" ]; then
+            log_info "任务开始: session=$session_id, start_time=$current_time"
+        else
+            log_error "创建状态文件失败: $state_file"
+            exit 1
+        fi
     fi
 }
 

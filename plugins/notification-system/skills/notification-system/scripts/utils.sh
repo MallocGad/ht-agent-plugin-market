@@ -58,7 +58,19 @@ log_warning() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARNING] $message" >> "$LOG_FILE" 2>/dev/null
 }
 
-# 将秒数格式化为人类可读的时长
+log_debug() {
+    local message="$1"
+    local log_dir="$(dirname "$LOG_FILE")"
+
+    # 确保日志目录存在
+    if [ ! -d "$log_dir" ]; then
+        mkdir -p "$log_dir" 2>/dev/null || return 1
+    fi
+
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [DEBUG] $message" >> "$LOG_FILE" 2>/dev/null
+}
+
+# 将秒数格式化为人类可读的时长（中文版本，用于通知显示）
 # 参数：秒数
 # 返回：格式化的字符串（如 "2分15秒"）
 format_duration() {
@@ -175,4 +187,147 @@ truncate_string() {
     else
         echo "${string:0:$max_length}..."
     fi
+}
+
+# ============================================================
+# State Management
+# ============================================================
+
+STATE_DIR="${HOME}/.claude/scripts/system-notify/state"
+
+# 初始化状态目录
+init_state_dir() {
+    mkdir -p "$STATE_DIR"
+    chmod 700 "$STATE_DIR"  # Secure - contains user prompts
+}
+
+# 清理24小时前的旧状态文件
+cleanup_old_state_files() {
+    # Remove state files older than 24 hours
+    find "$STATE_DIR" -name "*.state" -mtime +1 -delete 2>/dev/null || true
+}
+
+# 写入状态文件的键值对
+# 参数1：任务ID
+# 参数2：键名
+# 参数3：值
+write_state_file() {
+    local task_id="$1"
+    local key="$2"
+    local value="$3"
+    local state_file="${STATE_DIR}/${task_id}.state"
+
+    # Create state file if doesn't exist
+    if [[ ! -f "$state_file" ]]; then
+        echo '{}' > "$state_file"
+    fi
+
+    # Update key-value using jq (handle both string and number values)
+    local tmp_file="${state_file}.tmp"
+    if [[ "$value" =~ ^[0-9]+$ ]]; then
+        # Numeric value
+        jq --arg key "$key" --argjson val "$value" '.[$key] = $val' "$state_file" > "$tmp_file"
+    else
+        # String value
+        jq --arg key "$key" --arg val "$value" '.[$key] = $val' "$state_file" > "$tmp_file"
+    fi
+    mv "$tmp_file" "$state_file"
+}
+
+# 读取状态文件的键值
+# 参数1：任务ID
+# 参数2：键名
+# 返回：值；失败时返回空
+read_state_file() {
+    local task_id="$1"
+    local key="$2"
+    local state_file="${STATE_DIR}/${task_id}.state"
+
+    if [[ ! -f "$state_file" ]]; then
+        echo ""
+        return 1
+    fi
+
+    jq -r --arg key "$key" '.[$key] // ""' "$state_file"
+}
+
+# 获取状态文件路径
+# 参数1：任务ID
+# 返回：状态文件的完整路径
+get_state_file_path() {
+    local task_id="$1"
+    echo "${STATE_DIR}/${task_id}.state"
+}
+
+# 删除状态文件
+# 参数1：任务ID
+delete_state_file() {
+    local task_id="$1"
+    rm -f "${STATE_DIR}/${task_id}.state"
+}
+
+# ============================================================
+# Daemon Management
+# ============================================================
+
+DAEMON_PID_FILE="${STATE_DIR}/daemon.pid"
+
+# 检查守护进程是否运行
+# 返回：0 (运行中) 或 1 (未运行)
+is_daemon_running() {
+    if [[ ! -f "$DAEMON_PID_FILE" ]]; then
+        return 1
+    fi
+
+    local pid=$(cat "$DAEMON_PID_FILE")
+    if ps -p "$pid" > /dev/null 2>&1; then
+        return 0
+    else
+        # Stale PID file
+        rm -f "$DAEMON_PID_FILE"
+        return 1
+    fi
+}
+
+# 启动守护进程
+# 参数1：脚本目录路径
+start_daemon() {
+    local script_dir="$1"
+
+    if is_daemon_running; then
+        log_debug "Daemon already running"
+        return 0
+    fi
+
+    log_debug "Starting monitor daemon"
+    nohup "${script_dir}/task-monitor-daemon.sh" >> "${STATE_DIR}/daemon.log" 2>&1 &
+    echo $! > "$DAEMON_PID_FILE"
+}
+
+# 停止守护进程
+stop_daemon() {
+    if [[ -f "$DAEMON_PID_FILE" ]]; then
+        local pid=$(cat "$DAEMON_PID_FILE")
+        kill "$pid" 2>/dev/null || true
+        rm -f "$DAEMON_PID_FILE"
+    fi
+}
+
+# ============================================================
+# Time Calculation
+# ============================================================
+
+# 获取当前时间戳（秒）
+get_current_timestamp() {
+    date +%s
+}
+
+# 计算时长（秒）
+# 参数1：开始时间戳
+# 参数2：结束时间戳
+# 返回：时长（秒）
+calculate_duration() {
+    local start="$1"
+    local end="$2"
+    echo $((end - start))
 }
