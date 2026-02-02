@@ -123,6 +123,7 @@ main() {
     cp "$PROJECT_DIR/scripts/task-start.sh" "$SYSTEM_NOTIFY_DIR/"
     cp "$PROJECT_DIR/scripts/task-complete.sh" "$SYSTEM_NOTIFY_DIR/"
     cp "$PROJECT_DIR/scripts/task-monitor-daemon.sh" "$SYSTEM_NOTIFY_DIR/"
+    cp "$PROJECT_DIR/scripts/stop-daemon.sh" "$SYSTEM_NOTIFY_DIR/"
     cp "$PROJECT_DIR/scripts/utils.sh" "$SYSTEM_NOTIFY_DIR/"
 
     # 复制通知器脚本
@@ -163,11 +164,13 @@ main() {
     # 定义 hooks 配置
     local TASK_START_CMD="bash ~/.claude/scripts/system-notify/task-start.sh"
     local TASK_COMPLETE_CMD="bash ~/.claude/scripts/system-notify/task-complete.sh"
+    local STOP_DAEMON_CMD="bash ~/.claude/scripts/system-notify/stop-daemon.sh"
 
     # 使用 jq 合并 hooks 配置
     local temp_file=$(mktemp)
     jq --arg start_cmd "$TASK_START_CMD" \
-       --arg complete_cmd "$TASK_COMPLETE_CMD" '
+       --arg complete_cmd "$TASK_COMPLETE_CMD" \
+       --arg stop_cmd "$STOP_DAEMON_CMD" '
     # 确保 hooks 字段存在
     .hooks //= {} |
 
@@ -199,6 +202,21 @@ main() {
                     "timeout": 10
                 }]
             }]
+        end |
+
+    # 配置 SessionEnd hook
+    .hooks.SessionEnd //= [] |
+    .hooks.SessionEnd |=
+        if any(.[].hooks[]?; .command == $stop_cmd) then
+            .
+        else
+            . + [{
+                "hooks": [{
+                    "type": "command",
+                    "command": $stop_cmd,
+                    "timeout": 5
+                }]
+            }]
         end
     ' "$SETTINGS_FILE" > "$temp_file"
 
@@ -226,6 +244,7 @@ main() {
     echo "2. 注册的 Hooks："
     echo "   - UserPromptSubmit: 记录任务开始或重置静默计时器"
     echo "   - Stop: 任务完成时更新状态并启动监控守护进程"
+    echo "   - SessionEnd: Claude Code 退出时停止守护进程"
     echo ""
     echo "3. 功能说明："
     echo "   - UserPromptSubmit hook 同时处理任务开始和用户后续输入"

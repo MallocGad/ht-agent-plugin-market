@@ -12,14 +12,15 @@ Claude Code 用户静默通知系统。当用户在 Claude 响应后长时间未
 - ⚙️ 灵活的配置选项
 - 📊 完整的日志记录
 
-## 核心特性 (v2.0.0)
+## 核心特性 (v2.0.4)
 
 - ✅ 基于状态监控的架构，替代旧的时间延迟方式
 - ✅ 单一后台守护进程，监控所有活跃任务
 - ✅ 用户输入时自动重置静默计时器
 - ✅ 支持多任务并发监控
-- ✅ 自动清理过期状态文件（24小时）
-- ✅ 守护进程空闲自动退出，节省资源
+- ✅ 自动清理过期状态文件（30分钟）
+- ✅ 守护进程空闲自动退出（10分钟），节省资源
+- ✅ Claude Code 退出时自动停止守护进程
 
 ## Installation
 
@@ -71,6 +72,17 @@ Claude Code 用户静默通知系统。当用户在 Claude 响应后长时间未
           }
         ]
       }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/system-notify/stop-daemon.sh",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   }
 }
@@ -108,10 +120,10 @@ Claude Code 用户静默通知系统。当用户在 Claude 响应后长时间未
 
 **主要配置项**：
 - `silence_duration` - 静默阈值（秒），默认 15 秒
-- `state.cleanup_after_hours` - 自动清理过期状态文件的时长（小时）
+- `state.cleanup_after_hours` - 自动清理过期状态文件的时长（小时），默认 0.5 小时（30分钟）
 - `channels` - 配置各通知渠道（Mac、钉钉、飞书）
 
-**注意**: 守护进程检查间隔固定为 15 秒，不可配置。
+**注意**: 守护进程检查间隔固定为 15 秒，不可配置。守护进程无活动超时为 10 分钟。
 
 ## 环境变量
 
@@ -170,8 +182,9 @@ export CLAUDE_NOTIFICATION_DEBUG=1
 
 - 守护进程使用 `nohup` 在后台运行
 - PID 存储在 `~/.claude/scripts/system-notify/state/daemon.pid`
-- 当所有任务完成后空闲超过 1 小时，自动退出
+- 当所有任务完成后空闲超过 10 分钟，自动退出
 - 每次 Claude 响应时检查并重启（如已停止）
+- Claude Code 退出时自动停止守护进程
 
 ## 测试
 
@@ -230,7 +243,7 @@ ps aux | grep task-monitor-daemon
 
 ## Version
 
-2.0.3
+2.0.4
 
 ## 迁移指南
 

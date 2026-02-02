@@ -2,6 +2,34 @@
 
 All notable changes to the notification-system plugin will be documented in this file.
 
+## [2.0.4] - 2026-02-02
+
+### Changed
+
+**Daemon Lifecycle Optimization** - Improved resource management and cleanup
+
+- **Inactivity Timeout**: Reduced from 3600 seconds (1 hour) to 600 seconds (10 minutes)
+  - Daemon exits faster when no active tasks, reducing unnecessary resource usage
+  - Next task automatically restarts daemon when needed
+- **State File Cleanup**: Reduced from 24 hours to 30 minutes
+  - Faster cleanup of stale state files
+  - Aligned with daemon lifecycle for better consistency
+- **SessionEnd Hook**: Added automatic daemon cleanup on Claude Code exit
+  - New `stop-daemon.sh` script stops daemon when session ends
+  - Prevents daemon from running after user closes Claude Code
+  - Automatically configured during installation
+
+### Added
+
+- **`stop-daemon.sh`**: New script for graceful daemon shutdown on session end
+- **Automatic SessionEnd Hook Configuration**: `install.sh` now configures SessionEnd hook automatically
+
+### Benefits
+
+- **Better Resource Management**: Daemon runs only when needed
+- **Cleaner Shutdown**: No orphaned processes after Claude Code exits
+- **Faster Cleanup**: State files removed within 30 minutes instead of 24 hours
+
 ## [2.0.3] - 2026-02-02
 
 ### Changed

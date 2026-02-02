@@ -11,7 +11,7 @@ source "$SCRIPT_DIR/utils.sh"
 
 # 配置
 CHECK_INTERVAL=15  # 检查间隔（秒）
-INACTIVITY_TIMEOUT=3600  # 无活动任务自动退出时间（1小时）
+INACTIVITY_TIMEOUT=600  # 无活动任务自动退出时间（10分钟）
 
 # 获取所有状态文件
 # 返回：状态文件路径列表（每行一个）

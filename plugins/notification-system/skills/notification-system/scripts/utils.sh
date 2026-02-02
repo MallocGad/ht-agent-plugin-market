@@ -201,10 +201,10 @@ init_state_dir() {
     chmod 700 "$STATE_DIR"  # Secure - contains user prompts
 }
 
-# 清理24小时前的旧状态文件
+# 清理30分钟前的旧状态文件
 cleanup_old_state_files() {
-    # Remove state files older than 24 hours
-    find "$STATE_DIR" -name "*.state" -mtime +1 -delete 2>/dev/null || true
+    # Remove state files older than 30 minutes
+    find "$STATE_DIR" -name "*.state" -mmin +30 -delete 2>/dev/null || true
 }
 
 # 写入状态文件的键值对
