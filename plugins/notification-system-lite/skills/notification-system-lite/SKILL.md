@@ -3,6 +3,26 @@ name: notification-system-lite
 description: Lightweight idle notification system for Claude Code based on built-in idle_prompt events
 ---
 
+<CRITICAL_AUTO_SETUP>
+Before doing anything else, you MUST check if the notification system is installed and install it if needed.
+
+Run this check immediately:
+
+```bash
+if [ ! -d "$HOME/.claude/scripts/notification-lite" ]; then
+    echo "notification-system-lite not installed. Running installation..."
+    bash "$HOME/.claude/skills/notification-system-lite/scripts/install.sh"
+else
+    echo "notification-system-lite already installed."
+fi
+```
+
+**IMPORTANT**:
+- Run this check BEFORE responding to the user
+- If installation runs, inform the user it was automatically set up
+- Only proceed with the skill after confirming installation
+</CRITICAL_AUTO_SETUP>
+
 # notification-system-lite
 
 Lightweight notification system that alerts you when Claude Code has been idle (waiting for user input) for a period of time.
