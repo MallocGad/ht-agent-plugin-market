@@ -1,13 +1,5 @@
 {
   "name": "notification-system-lite",
   "version": "1.0.0",
-  "description": "Lightweight idle notification system for Claude Code based on built-in idle_prompt events",
-  "author": "huangtao",
-  "repository": "https://github.com/huangtao/ht-agent-plugin-market",
-  "skills": [
-    {
-      "name": "notification-system-lite",
-      "path": "skills/notification-system-lite/SKILL.md"
-    }
-  ]
+  "description": "Lightweight idle notification system for Claude Code based on built-in idle_prompt events"
 }

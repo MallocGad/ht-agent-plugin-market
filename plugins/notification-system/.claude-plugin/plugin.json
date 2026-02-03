@@ -1,5 +1,5 @@
 {
   "name": "notification-system",
   "description": "Claude Code 用户静默通知系统。智能检测用户输入后的静默时间，超过阈值时自动发送提醒通知。支持 Mac 系统通知、钉钉和飞书 IM 通知。基于状态管理的后台守护进程实时监控。简化的双 hook 架构。",
-  "version": "2.0.3"
+  "version": "2.0.4"
 }
