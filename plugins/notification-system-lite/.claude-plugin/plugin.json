@@ -9,8 +9,5 @@
       "name": "notification-system-lite",
       "path": "skills/notification-system-lite/SKILL.md"
     }
-  ],
-  "install": {
-    "script": "skills/notification-system-lite/scripts/install.sh"
-  }
+  ]
 }
