@@ -18,6 +18,24 @@
       "name": "notification-system",
       "source": "./plugins/notification-system",
       "description": "Claude Code 长任务完成通知系统。在任务运行超过阈值时自动发送通知，支持 Mac 系统通知、钉钉和飞书 IM 通知。",
+      "version": "2.0.4",
+      "author": {
+        "name": "ht"
+      }
+    },
+    {
+      "name": "notification-system-lite",
+      "source": "./plugins/notification-system-lite",
+      "description": "Claude Code 轻量级用户空闲通知系统。基于 Claude Code 内置的 idle_prompt 事件，当用户在 Claude 响应后长时间未输入时，自动发送提醒通知。无后台守护进程，零资源占用。",
+      "version": "1.0.0",
+      "author": {
+        "name": "ht"
+      }
+    },
+    {
+      "name": "package-plugin",
+      "source": "./plugins/package-plugin",
+      "description": "Package a skill into a Claude Code plugin and publish to marketplace. Use when the user wants to distribute or share a skill as a plugin.",
       "version": "1.0.0",
       "author": {
         "name": "ht"
