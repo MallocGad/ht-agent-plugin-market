@@ -26,6 +26,11 @@ Claude Code 轻量级用户空闲通知系统。基于 Claude Code 内置的 `id
 /plugin install notification-system-lite from ht-agent-plugin-market
 ```
 
+插件安装后会自动：
+- 配置 hooks（通过 plugin.json）
+- 首次运行时自动创建必要的目录和日志文件
+- 使用插件目录中的配置文件
+
 ## 工作原理
 
 系统使用两个 hook 脚本：
@@ -60,41 +65,16 @@ send-notification.sh 读取状态
 
 ## 配置
 
-插件安装后，在 `~/.claude/settings.json` 中配置 hooks：
+插件安装后，hooks 会自动配置（通过 plugin.json）：
 
-```json
-{
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/scripts/notification-lite/task-start.sh",
-            "timeout": 5
-          }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "matcher": "idle_prompt",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/scripts/notification-lite/send-notification.sh",
-            "timeout": 5
-          }
-        ]
-      }
-    ]
-  }
-}
-```
+- **UserPromptSubmit**: 记录任务开始和用户输入
+- **Notification(idle_prompt)**: Claude Code 检测到空闲时发送通知
+
+无需手动修改 `~/.claude/settings.json`。
 
 ## 配置选项
 
-在 `~/.claude/scripts/notification-lite/notification-config.json` 中配置：
+在 `~/.claude/plugins/notification-system-lite/notification-config.json` 中配置：
 
 ```json
 {
@@ -131,7 +111,7 @@ send-notification.sh 读取状态
 
 ### 状态文件
 
-系统在 `~/.claude/scripts/notification-lite/state/` 目录下为每个会话维护一个状态文件：
+系统在 `~/.claude/state/notification-lite/` 目录下为每个会话维护一个状态文件：
 
 **文件名格式**: `{session_id}.state`
 
@@ -156,12 +136,12 @@ send-notification.sh 读取状态
 ## 日志和调试
 
 **日志文件位置**:
-- `~/.claude/scripts/notification-lite/logs/notification.log` - 主日志
+- `~/.claude/logs/notification-lite/notification.log` - 主日志
 
 **查看日志**:
 ```bash
 # 实时查看日志
-tail -f ~/.claude/scripts/notification-lite/logs/notification.log
+tail -f ~/.claude/logs/notification-lite/notification.log
 ```
 
 ## 故障排除
@@ -173,9 +153,9 @@ tail -f ~/.claude/scripts/notification-lite/logs/notification.log
 4. 确认 Claude Code 已检测到空闲（等待足够时间）
 
 **状态文件问题**:
-1. 状态文件位于 `~/.claude/scripts/notification-lite/state/*.state`
+1. 状态文件位于 `~/.claude/state/notification-lite/*.state`
 2. 30分钟后自动清理
-3. 可手动删除：`rm ~/.claude/scripts/notification-lite/state/*.state`
+3. 可手动删除：`rm ~/.claude/state/notification-lite/*.state`
 
 ## 与 notification-system 的对比
 
@@ -191,7 +171,3 @@ tail -f ~/.claude/scripts/notification-lite/logs/notification.log
 ## Version
 
 1.0.0
-
-## Usage
-
-See the skill documentation in `skills/notification-system-lite/SKILL.md`

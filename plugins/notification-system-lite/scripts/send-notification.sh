@@ -128,7 +128,8 @@ main() {
 
     log_info "收到 idle_prompt 通知: session=$session_id"
 
-    # 初始化状态目录
+    # 初始化目录（确保日志和状态目录存在）
+    mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null || true
     init_state_dir
 
     # 检查状态文件是否存在

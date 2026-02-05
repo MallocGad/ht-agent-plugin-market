@@ -33,7 +33,8 @@ main() {
         exit 1
     fi
 
-    # 初始化状态目录
+    # 初始化目录（确保日志和状态目录存在）
+    mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null || true
     init_state_dir
 
     # 获取当前时间戳

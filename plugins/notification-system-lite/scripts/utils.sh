@@ -2,12 +2,22 @@
 # scripts/utils.sh
 # 通用工具函数库
 
+# 获取插件目录
+if [ -n "$PLUGIN_DIR" ]; then
+    # 从环境变量获取（hook 执行时）
+    NOTIFICATION_LITE_DIR="$PLUGIN_DIR"
+else
+    # 从脚本路径推断（直接执行时）
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    NOTIFICATION_LITE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+fi
+
 # 配置文件和日志路径
 CLAUDE_DIR="$HOME/.claude"
-NOTIFICATION_LITE_DIR="$CLAUDE_DIR/scripts/notification-lite"
 CONFIG_FILE="$NOTIFICATION_LITE_DIR/notification-config.json"
-LOG_FILE="$NOTIFICATION_LITE_DIR/logs/notification.log"
-STATE_DIR="$NOTIFICATION_LITE_DIR/state"
+LOG_DIR="$CLAUDE_DIR/logs/notification-lite"
+LOG_FILE="$LOG_DIR/notification.log"
+STATE_DIR="$CLAUDE_DIR/state/notification-lite"
 
 # 日志函数
 log_info() {
