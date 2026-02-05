@@ -52,10 +52,13 @@ send_notification() {
     local total_duration_str=$(format_duration "$total_duration")
     local idle_duration_str=$(format_duration "$idle_duration")
 
+    # 获取项目名称（当前工作目录名称）
+    local project_name=$(basename "$PWD")
+
     # 构建消息
     local title="Claude Code - 需要用户输入"
     local subtitle="任务已空闲 ${idle_duration_str}"
-    local message="任务: ${truncated_prompt}\n总时长: ${total_duration_str}\n空闲时长: ${idle_duration_str}"
+    local message="项目: ${project_name}\n任务: ${truncated_prompt}\n总时长: ${total_duration_str}\n空闲时长: ${idle_duration_str}"
 
     # 发送 Mac 通知
     if is_json_true "$config_file" "channels.mac.enabled"; then
@@ -78,7 +81,7 @@ send_notification() {
         if [[ -n "$webhook" ]]; then
             log_info "发送钉钉通知: session_id=$session_id"
             # 钉钉使用 Markdown 格式
-            local dingtalk_content="### ${title}\n\n**任务**: ${truncated_prompt}\n\n**总时长**: ${total_duration_str}\n\n**空闲时长**: ${idle_duration_str}"
+            local dingtalk_content="### ${title}\n\n**项目**: ${project_name}\n\n**任务**: ${truncated_prompt}\n\n**总时长**: ${total_duration_str}\n\n**空闲时长**: ${idle_duration_str}"
             if "${SCRIPT_DIR}/notifiers/dingtalk.sh" "$webhook" "$secret" "$title" "$dingtalk_content"; then
                 log_success "钉钉通知发送成功: session_id=$session_id"
             else
@@ -93,7 +96,7 @@ send_notification() {
 
         if [[ -n "$webhook" ]]; then
             log_info "发送飞书通知: session_id=$session_id"
-            local lark_content="任务: ${truncated_prompt}\n总时长: ${total_duration_str}\n空闲时长: ${idle_duration_str}"
+            local lark_content="项目: ${project_name}\n任务: ${truncated_prompt}\n总时长: ${total_duration_str}\n空闲时长: ${idle_duration_str}"
             if "${SCRIPT_DIR}/notifiers/lark.sh" "$webhook" "$title" "$lark_content"; then
                 log_success "飞书通知发送成功: session_id=$session_id"
             else
