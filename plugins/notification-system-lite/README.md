@@ -74,7 +74,15 @@ send-notification.sh 读取状态
 
 ## 配置选项
 
-在 `~/.claude/plugins/notification-system-lite/notification-config.json` 中配置：
+在插件目录下的 `notification-config.json` 中配置：
+
+```bash
+# 查看配置文件路径
+echo $PLUGIN_DIR/notification-config.json
+
+# 编辑配置文件
+vi $PLUGIN_DIR/notification-config.json
+```
 
 ```json
 {
@@ -111,7 +119,12 @@ send-notification.sh 读取状态
 
 ### 状态文件
 
-系统在 `~/.claude/state/notification-lite/` 目录下为每个会话维护一个状态文件：
+系统在插件目录的 `state/` 子目录下为每个会话维护一个状态文件。
+
+**查看状态文件**:
+```bash
+ls -lh $PLUGIN_DIR/state/*.state
+```
 
 **文件名格式**: `{session_id}.state`
 
@@ -135,13 +148,13 @@ send-notification.sh 读取状态
 
 ## 日志和调试
 
-**日志文件位置**:
-- `~/.claude/logs/notification-lite/notification.log` - 主日志
-
 **查看日志**:
 ```bash
-# 实时查看日志
-tail -f ~/.claude/logs/notification-lite/notification.log
+# 实时查看日志（插件目录下的 logs/notification.log）
+tail -f ~/.claude/plugins/cache/*/notification-system-lite/logs/notification.log
+
+# 或者使用通配符查找
+find ~/.claude/plugins/cache -name "notification.log" -path "*/notification-system-lite/*" -exec tail -f {} \;
 ```
 
 ## 故障排除
@@ -153,9 +166,9 @@ tail -f ~/.claude/logs/notification-lite/notification.log
 4. 确认 Claude Code 已检测到空闲（等待足够时间）
 
 **状态文件问题**:
-1. 状态文件位于 `~/.claude/state/notification-lite/*.state`
+1. 状态文件位于插件目录的 `state/` 子目录
 2. 30分钟后自动清理
-3. 可手动删除：`rm ~/.claude/state/notification-lite/*.state`
+3. 可手动删除：`rm ~/.claude/plugins/cache/*/notification-system-lite/state/*.state`
 
 ## 与 notification-system 的对比
 

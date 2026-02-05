@@ -12,12 +12,11 @@ else
     NOTIFICATION_LITE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 fi
 
-# 配置文件和日志路径
-CLAUDE_DIR="$HOME/.claude"
+# 配置文件和日志路径（都在插件目录下）
 CONFIG_FILE="$NOTIFICATION_LITE_DIR/notification-config.json"
-LOG_DIR="$CLAUDE_DIR/logs/notification-lite"
+LOG_DIR="$NOTIFICATION_LITE_DIR/logs"
 LOG_FILE="$LOG_DIR/notification.log"
-STATE_DIR="$CLAUDE_DIR/state/notification-lite"
+STATE_DIR="$NOTIFICATION_LITE_DIR/state"
 
 # 日志函数
 log_info() {
@@ -134,13 +133,6 @@ get_json_value() {
         # 验证路径解析是否成功
         if [ -z "$real_path" ]; then
             log_error "无法解析文件路径: $json_input"
-            return 1
-        fi
-
-        # 安全检查：只允许 ~/.claude 目录和 /tmp 目录（用于状态文件）
-        if [[ ! "$real_path" =~ ^$HOME/\.claude/ ]] && [[ ! "$real_path" =~ ^/tmp/ ]] && [[ ! "$real_path" =~ ^/private/tmp/ ]]; then
-            log_error "拒绝读取不安全的路径: $json_input"
-            log_error "解析后的路径: $real_path"
             return 1
         fi
 
