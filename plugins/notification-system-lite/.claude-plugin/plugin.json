@@ -1,6 +1,5 @@
 {
   "name": "notification-system-lite",
   "version": "1.0.3",
-  "description": "Lightweight idle notification system for Claude Code based on built-in idle_prompt events",
-  "hooks": "./hooks/hooks.json"
+  "description": "Lightweight idle notification system for Claude Code based on built-in idle_prompt events"
 }
