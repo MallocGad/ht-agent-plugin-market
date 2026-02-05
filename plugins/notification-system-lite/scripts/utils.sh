@@ -9,9 +9,9 @@ print_error() {
 }
 
 # 获取插件目录
-if [ -n "${PLUGIN_DIR:-}" ]; then
+if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
     # 从环境变量获取（hook 执行时）
-    NOTIFICATION_LITE_DIR="$PLUGIN_DIR"
+    NOTIFICATION_LITE_DIR="$CLAUDE_PLUGIN_ROOT"
 else
     # 从脚本路径推断（直接执行时）
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

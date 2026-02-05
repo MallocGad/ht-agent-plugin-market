@@ -78,10 +78,10 @@ send-notification.sh 读取状态
 
 ```bash
 # 查看配置文件路径
-echo $PLUGIN_DIR/notification-config.json
+echo $CLAUDE_PLUGIN_ROOT/notification-config.json
 
 # 编辑配置文件
-vi $PLUGIN_DIR/notification-config.json
+vi $CLAUDE_PLUGIN_ROOT/notification-config.json
 ```
 
 ```json
@@ -123,7 +123,7 @@ vi $PLUGIN_DIR/notification-config.json
 
 **查看状态文件**:
 ```bash
-ls -lh $PLUGIN_DIR/state/*.state
+ls -lh $CLAUDE_PLUGIN_ROOT/state/*.state
 ```
 
 **文件名格式**: `{session_id}.state`
