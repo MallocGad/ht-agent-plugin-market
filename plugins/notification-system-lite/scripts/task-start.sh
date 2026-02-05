@@ -8,18 +8,26 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/utils.sh"
 
+# 错误处理函数 - 打印JSON格式错误到stdout
+print_error() {
+    local error_msg="$1"
+    echo "{\"systemMessage\": \"notification-system-lite error: $error_msg\"}" >&1
+}
+
 main() {
     # 从 stdin 读取 JSON payload
     local payload=$(cat)
 
     if [ -z "$payload" ]; then
         log_error "未收到 payload 数据"
+        print_error "未收到 payload 数据"
         exit 1
     fi
 
     # 检查 jq 是否可用
     if ! command -v jq &> /dev/null; then
         log_error "jq 未安装，无法解析 JSON payload"
+        print_error "jq 未安装，无法解析 JSON payload"
         exit 1
     fi
 
@@ -30,12 +38,20 @@ main() {
     # session_id 为必需字段
     if [ -z "$session_id" ]; then
         log_error "payload 中缺少必需的 session_id 字段"
+        print_error "payload 中缺少必需的 session_id 字段"
         exit 1
     fi
 
     # 初始化目录（确保日志和状态目录存在）
-    mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null || true
-    init_state_dir
+    if ! mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null; then
+        print_error "无法创建日志目录"
+        exit 1
+    fi
+
+    if ! init_state_dir; then
+        print_error "无法初始化状态目录"
+        exit 1
+    fi
 
     # 获取当前时间戳
     local current_time=$(get_current_timestamp)
@@ -43,6 +59,7 @@ main() {
     # 验证时间戳是否成功生成
     if [ -z "$current_time" ]; then
         log_error "生成时间戳失败"
+        print_error "生成时间戳失败"
         exit 1
     fi
 

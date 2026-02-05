@@ -2,6 +2,12 @@
 # scripts/utils.sh
 # 通用工具函数库
 
+# 错误处理函数 - 打印JSON格式错误到stdout
+print_error() {
+    local error_msg="$1"
+    echo "{\"systemMessage\": \"notification-system-lite error: $error_msg\"}" >&1
+}
+
 # 获取插件目录
 if [ -n "$PLUGIN_DIR" ]; then
     # 从环境变量获取（hook 执行时）
@@ -133,12 +139,14 @@ get_json_value() {
         # 验证路径解析是否成功
         if [ -z "$real_path" ]; then
             log_error "无法解析文件路径: $json_input"
+            print_error "无法解析文件路径: $json_input"
             return 1
         fi
 
         # 读取文件
         json_content=$(cat "$real_path" 2>/dev/null) || {
             log_error "无法读取文件: $real_path"
+            print_error "无法读取文件: $real_path"
             return 1
         }
     else
@@ -152,6 +160,7 @@ get_json_value() {
         # 降级方案：使用 grep + sed（仅支持简单顶层键）
         if [[ "$key" == *.* ]]; then
             log_error "降级 JSON 解析不支持嵌套键: $key，请安装 jq"
+            print_error "降级 JSON 解析不支持嵌套键: $key，请安装 jq"
             return 1
         fi
         echo "$json_content" | grep -o "\"$key\"[[:space:]]*:[[:space:]]*[^,}]*" | sed 's/.*:[[:space:]]*//' | tr -d '"'
