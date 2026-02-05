@@ -27,7 +27,7 @@
       "name": "notification-system-lite",
       "source": "./plugins/notification-system-lite",
       "description": "Claude Code 轻量级用户空闲通知系统。基于 Claude Code 内置的 idle_prompt 事件，当用户在 Claude 响应后长时间未输入时，自动发送提醒通知。无后台守护进程，零资源占用。",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "author": {
         "name": "ht"
       }
