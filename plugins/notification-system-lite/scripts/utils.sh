@@ -9,7 +9,7 @@ print_error() {
 }
 
 # 获取插件目录
-if [ -n "$PLUGIN_DIR" ]; then
+if [ -n "${PLUGIN_DIR:-}" ]; then
     # 从环境变量获取（hook 执行时）
     NOTIFICATION_LITE_DIR="$PLUGIN_DIR"
 else
