@@ -1,6 +1,6 @@
 {
   "name": "notification-system-lite",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Lightweight idle notification system for Claude Code based on built-in idle_prompt events",
   "hooks": {
     "UserPromptSubmit": [
@@ -8,7 +8,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash $PLUGIN_DIR/scripts/task-start.sh",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/task-start.sh",
             "timeout": 5
           }
         ]
@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash $PLUGIN_DIR/scripts/send-notification.sh",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/send-notification.sh",
             "timeout": 5
           }
         ]
