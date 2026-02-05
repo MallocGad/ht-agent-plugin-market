@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/task-start.sh",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/task-start.sh",
             "timeout": 5
           }
         ]
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/send-notification.sh",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/send-notification.sh",
             "timeout": 5
           }
         ]
