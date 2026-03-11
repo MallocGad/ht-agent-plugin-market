@@ -141,12 +141,7 @@ main() {
 
     log_info "收到 idle_prompt 通知: session=$session_id"
 
-    # 初始化目录（确保日志和状态目录存在）
-    if ! mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null; then
-        print_error "无法创建日志目录"
-        exit 1
-    fi
-
+    # 初始化状态目录
     if ! init_state_dir; then
         print_error "无法初始化状态目录"
         exit 1

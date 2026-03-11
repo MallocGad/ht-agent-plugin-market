@@ -42,12 +42,7 @@ main() {
         exit 1
     fi
 
-    # 初始化目录（确保日志和状态目录存在）
-    if ! mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null; then
-        print_error "无法创建日志目录"
-        exit 1
-    fi
-
+    # 初始化状态目录
     if ! init_state_dir; then
         print_error "无法初始化状态目录"
         exit 1
@@ -93,15 +88,15 @@ main() {
 
         log_success "任务状态已更新: session=$session_id"
     else
-        # 新任务：创建状态文件
+        # 新任务：创建状态文件（原子写入）
         log_info "创建新任务状态: session=$session_id"
 
-        # 创建状态文件
-        write_state_file "$session_id" "session_id" "$session_id"
-        write_state_file "$session_id" "start_time" "$current_time"
-        write_state_file "$session_id" "last_input_time" "$current_time"
-        write_state_file "$session_id" "prompt" "$prompt"
-        write_state_file "$session_id" "notification_sent" "false"
+        write_state_file_batch "$session_id" \
+            "session_id" "$session_id" \
+            "start_time" "$current_time" \
+            "last_input_time" "$current_time" \
+            "prompt" "$prompt" \
+            "notification_sent" "false"
 
         log_success "新任务状态已创建: session=$session_id"
     fi

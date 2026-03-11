@@ -24,72 +24,33 @@ LOG_DIR="$NOTIFICATION_DIR/logs"
 LOG_FILE="$LOG_DIR/notification.log"
 STATE_DIR="$NOTIFICATION_DIR/state"
 
+# 初始化日志目录（source 时执行一次）
+mkdir -p "$LOG_DIR" 2>/dev/null || true
+
+# 内部日志写入函数
+_log() {
+    local level="$1"
+    local message="$2"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [$level] $message" >> "$LOG_FILE" 2>/dev/null
+}
+
 # 日志函数
-log_info() {
-    local message="$1"
-    local log_dir="$(dirname "$LOG_FILE")"
-
-    # 确保日志目录存在
-    if [ ! -d "$log_dir" ]; then
-        mkdir -p "$log_dir" 2>/dev/null || return 1
-    fi
-
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] $message" >> "$LOG_FILE" 2>/dev/null
-}
-
-log_error() {
-    local message="$1"
-    local log_dir="$(dirname "$LOG_FILE")"
-
-    # 确保日志目录存在
-    if [ ! -d "$log_dir" ]; then
-        mkdir -p "$log_dir" 2>/dev/null || return 1
-    fi
-
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [ERROR] $message" >> "$LOG_FILE" 2>/dev/null
-}
-
-log_success() {
-    local message="$1"
-    local log_dir="$(dirname "$LOG_FILE")"
-
-    # 确保日志目录存在
-    if [ ! -d "$log_dir" ]; then
-        mkdir -p "$log_dir" 2>/dev/null || return 1
-    fi
-
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [SUCCESS] $message" >> "$LOG_FILE" 2>/dev/null
-}
-
-log_warning() {
-    local message="$1"
-    local log_dir="$(dirname "$LOG_FILE")"
-
-    # 确保日志目录存在
-    if [ ! -d "$log_dir" ]; then
-        mkdir -p "$log_dir" 2>/dev/null || return 1
-    fi
-
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARNING] $message" >> "$LOG_FILE" 2>/dev/null
-}
-
-log_debug() {
-    local message="$1"
-    local log_dir="$(dirname "$LOG_FILE")"
-
-    # 确保日志目录存在
-    if [ ! -d "$log_dir" ]; then
-        mkdir -p "$log_dir" 2>/dev/null || return 1
-    fi
-
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [DEBUG] $message" >> "$LOG_FILE" 2>/dev/null
-}
+log_info()    { _log "INFO" "$1"; }
+log_error()   { _log "ERROR" "$1"; }
+log_success() { _log "SUCCESS" "$1"; }
+log_warning() { _log "WARNING" "$1"; }
+log_debug()   { _log "DEBUG" "$1"; }
 
 # 将秒数格式化为人类可读的时长（中文版本，用于通知显示）
 # 参数：秒数
 # 返回：格式化的字符串（如 "2分15秒"）
 format_duration() {
     local seconds="$1"
+
+    # 防止负值（时钟跳变等异常场景）
+    if [ "$seconds" -lt 0 ]; then
+        seconds=0
+    fi
 
     if [ "$seconds" -lt 60 ]; then
         echo "${seconds}秒"
@@ -216,6 +177,31 @@ cleanup_old_state_files() {
     # Remove state files older than 2 hours (120 minutes)
     # 30min was too aggressive for long-running tasks
     find "$STATE_DIR" -name "*.state" -mmin +120 -delete 2>/dev/null || true
+}
+
+# 批量写入状态文件（原子操作，避免竞态条件）
+# 用法: write_state_file_batch "session_id" "key1" "val1" "key2" "val2" ...
+write_state_file_batch() {
+    local session_id="$1"
+    shift
+    local state_file="${STATE_DIR}/${session_id}.state"
+
+    # 构建 jq 表达式，一次性写入所有键值对
+    local jq_expr="."
+    while [ $# -ge 2 ]; do
+        local key="$1"
+        local value="$2"
+        shift 2
+
+        if [[ "$value" =~ ^[0-9]+$ ]] || [[ "$value" == "true" ]] || [[ "$value" == "false" ]]; then
+            jq_expr="${jq_expr} | .\"${key}\" = ${value}"
+        else
+            jq_expr="${jq_expr} | .\"${key}\" = \"$(echo "$value" | sed 's/\\/\\\\/g; s/"/\\"/g')\""
+        fi
+    done
+
+    echo '{}' | jq "$jq_expr" > "${state_file}.tmp"
+    mv "${state_file}.tmp" "$state_file"
 }
 
 # 写入状态文件的键值对

@@ -74,8 +74,8 @@ git pull origin main 2>/dev/null || git pull origin master 2>/dev/null || true
 
 # Extract skill metadata from SKILL.md
 SKILL_DESC=$(grep -m1 "^description:" "$SKILL_PATH/SKILL.md" 2>/dev/null | sed 's/description: //' || echo "A Claude Code plugin")
-# Remove Chinese quotes that break JSON parsing
-SKILL_DESC=$(echo "$SKILL_DESC" | sed 's/[""]/\"/g' | sed 's/\"//g')
+# Remove Chinese curly quotes, replace with nothing (they break JSON)
+SKILL_DESC=$(echo "$SKILL_DESC" | sed 's/["""]//g')
 
 # Create plugin directory structure
 PLUGIN_DIR="$MARKETPLACE_DIR/plugins/$SKILL_NAME"
@@ -154,14 +154,14 @@ EOF
 fi
 
 # Add plugin to marketplace.json using Python (more reliable JSON handling)
-python3 << EOF
+python3 - "$MARKETPLACE_JSON" "$SKILL_NAME" "$SKILL_DESC" "$VERSION" << 'PYEOF'
 import json
-import os
+import sys
 
-marketplace_path = "$MARKETPLACE_JSON"
-plugin_name = "$SKILL_NAME"
-plugin_desc = """$SKILL_DESC"""
-plugin_version = "$VERSION"
+marketplace_path = sys.argv[1]
+plugin_name = sys.argv[2]
+plugin_desc = sys.argv[3]
+plugin_version = sys.argv[4]
 
 with open(marketplace_path, 'r') as f:
     data = json.load(f)
@@ -184,16 +184,17 @@ with open(marketplace_path, 'w') as f:
     json.dump(data, f, indent=2, ensure_ascii=False)
 
 print(f"Added {plugin_name} to marketplace.json")
-EOF
+PYEOF
 
 # Update main README
 log_info "Updating main README..."
-python3 << EOF
+python3 - "$MARKETPLACE_DIR" "$MARKETPLACE_JSON" << 'PYEOF'
 import os
 import json
+import sys
 
-marketplace_dir = "$MARKETPLACE_DIR"
-marketplace_json = "$MARKETPLACE_JSON"
+marketplace_dir = sys.argv[1]
+marketplace_json = sys.argv[2]
 
 with open(marketplace_json, 'r') as f:
     data = json.load(f)
@@ -208,17 +209,17 @@ Custom Claude Code plugins for ht team.
 
 Add this marketplace to Claude Code:
 
-\`\`\`bash
+```bash
 /plugin marketplace add MallocGad/ht-agent-plugin-market
-\`\`\`
+```
 
 Or with full GitLab URL:
 
-\`\`\`bash
+```bash
 /plugin marketplace add https://github.com/MallocGad/ht-agent-plugin-market.git
-\`\`\`
+```
 
-Then browse and install plugins using \`/plugin\` menu.
+Then browse and install plugins using `/plugin` menu.
 
 ## Available Plugins
 
@@ -227,7 +228,10 @@ Then browse and install plugins using \`/plugin\` menu.
 """
 
 for plugin in plugins:
-    readme_content += f"| {plugin['name']} | {plugin['description'][:60]}{'...' if len(plugin['description']) > 60 else ''} | {plugin['version']} |\n"
+    desc = plugin['description'][:60]
+    if len(plugin['description']) > 60:
+        desc += '...'
+    readme_content += f"| {plugin['name']} | {desc} | {plugin['version']} |\n"
 
 if not plugins:
     readme_content += "| (empty) | No plugins yet | - |\n"
@@ -235,14 +239,14 @@ if not plugins:
 readme_content += """
 ## Contributing
 
-Use the \`/package-plugin\` skill to package and publish new plugins.
+Use the `/package-plugin` skill to package and publish new plugins.
 """
 
 with open(os.path.join(marketplace_dir, 'README.md'), 'w') as f:
     f.write(readme_content)
 
 print("Updated README.md")
-EOF
+PYEOF
 
 # Show status
 echo ""

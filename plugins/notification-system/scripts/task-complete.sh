@@ -23,8 +23,7 @@ main() {
 
     if [ -z "$session_id" ]; then exit 0; fi
 
-    # 确保目录存在
-    mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null || true
+    # 确保状态目录存在
     init_state_dir 2>/dev/null || true
 
     # 仅当状态文件存在时才更新（避免处理无效/过期会话）

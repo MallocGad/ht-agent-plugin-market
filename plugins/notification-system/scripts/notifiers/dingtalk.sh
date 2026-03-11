@@ -31,7 +31,7 @@ generate_dingtalk_sign() {
     if command -v jq &> /dev/null; then
         encoded_sign=$(echo -n "$sign" | jq -sRr @uri)
     elif command -v python3 &> /dev/null; then
-        encoded_sign=$(python3 -c "import urllib.parse; print(urllib.parse.quote('''$sign'''))")
+        encoded_sign=$(echo -n "$sign" | python3 -c "import sys, urllib.parse; print(urllib.parse.quote(sys.stdin.read()))")
     else
         # 简单的 URL 编码（仅处理常见字符）
         encoded_sign=$(echo -n "$sign" | sed 's/ /%20/g; s/+/%2B/g; s/\//%2F/g; s/=/%3D/g')

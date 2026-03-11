@@ -49,7 +49,12 @@ send_mac_notification() {
         sound_option="sound name \"default\""
     fi
 
-    local applescript="display notification \"$message\" with title \"$title\" subtitle \"$subtitle\" $sound_option"
+    # 转义 AppleScript 特殊字符（防止注入）
+    local escaped_message=$(echo "$message" | sed 's/\\/\\\\/g; s/"/\\"/g')
+    local escaped_title=$(echo "$title" | sed 's/\\/\\\\/g; s/"/\\"/g')
+    local escaped_subtitle=$(echo "$subtitle" | sed 's/\\/\\\\/g; s/"/\\"/g')
+
+    local applescript="display notification \"$escaped_message\" with title \"$escaped_title\" subtitle \"$escaped_subtitle\" $sound_option"
 
     if osascript -e "$applescript" &> /dev/null; then
         log_success "Mac 通知发送成功 (osascript)"
