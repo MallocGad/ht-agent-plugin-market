@@ -40,6 +40,15 @@
       "author": {
         "name": "ht"
       }
+    },
+    {
+      "name": "dev-team",
+      "source": "./plugins/dev-team",
+      "description": "开发团队插件，预置标准开发流程中的多个角色 skill：PRD 分析师、方案设计师、代码开发者、架构审查员、Code Reviewer、测试工程师。通过 /dev-init 初始化项目配置后，各角色自动适配项目规范，支持完整的开发工作流闭环。",
+      "version": "1.0.0",
+      "author": {
+        "name": "ht"
+      }
     }
   ]
 }
