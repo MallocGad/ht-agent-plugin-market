@@ -1,0 +1,25 @@
+{
+  "enabled": true,
+  "timeThreshold": 15,
+  "channels": {
+    "mac": {
+      "enabled": true,
+      "sound": true
+    },
+    "dingtalk": {
+      "enabled": false,
+      "webhook": "",
+      "secret": ""
+    },
+    "lark": {
+      "enabled": false,
+      "webhook": ""
+    }
+  },
+  "message": {
+    "includePrompt": true,
+    "includeDuration": true,
+    "includeTimestamp": true,
+    "maxPromptLength": 100
+  }
+}

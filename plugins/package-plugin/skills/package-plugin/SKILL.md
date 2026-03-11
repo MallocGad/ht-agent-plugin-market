@@ -11,7 +11,14 @@ Package existing skills into Claude Code plugins and publish them to your market
 
 ```
 Repository: https://github.com/MallocGad/ht-agent-plugin-market.git
-Local Path: /tmp/ht-agent-plugin-market
+Local Path: ~/.claude/marketplace/ht-agent-plugin-market  (default, override via $MARKETPLACE_DIR)
+```
+
+Both values can be overridden with environment variables:
+
+```bash
+export MARKETPLACE_DIR="$HOME/my-custom-path/ht-agent-plugin-market"
+export MARKETPLACE_REPO="https://github.com/your-fork/ht-agent-plugin-market.git"
 ```
 
 ## Usage
@@ -48,7 +55,7 @@ After packaging, the script will:
 
 Then push to remote:
 ```bash
-cd /tmp/ht-agent-plugin-market && git add . && git commit -m "Add plugin: <name>" && git push origin main
+cd ~/.claude/marketplace/ht-agent-plugin-market && git add . && git commit -m "Add plugin: <name>" && git push origin main
 ```
 
 ## Plugin Structure Generated

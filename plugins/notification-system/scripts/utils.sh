@@ -5,24 +5,24 @@
 # 错误处理函数 - 打印JSON格式错误到stdout
 print_error() {
     local error_msg="$1"
-    echo "{\"systemMessage\": \"notification-system-lite error: $error_msg\"}" >&1
+    echo "{\"systemMessage\": \"notification-system error: $error_msg\"}" >&1
 }
 
 # 获取插件目录
 if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
     # 从环境变量获取（hook 执行时）
-    NOTIFICATION_LITE_DIR="$CLAUDE_PLUGIN_ROOT"
+    NOTIFICATION_DIR="$CLAUDE_PLUGIN_ROOT"
 else
     # 从脚本路径推断（直接执行时）
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    NOTIFICATION_LITE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+    NOTIFICATION_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 fi
 
 # 配置文件和日志路径（都在插件目录下）
-CONFIG_FILE="$NOTIFICATION_LITE_DIR/notification-config.json"
-LOG_DIR="$NOTIFICATION_LITE_DIR/logs"
+CONFIG_FILE="$NOTIFICATION_DIR/notification-config.json"
+LOG_DIR="$NOTIFICATION_DIR/logs"
 LOG_FILE="$LOG_DIR/notification.log"
-STATE_DIR="$NOTIFICATION_LITE_DIR/state"
+STATE_DIR="$NOTIFICATION_DIR/state"
 
 # 日志函数
 log_info() {

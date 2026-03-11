@@ -8,8 +8,10 @@ set -e
 SKILL_NAME="$1"
 VERSION="${2:-1.0.0}"
 SKILLS_DIR="$HOME/.claude/skills"
-MARKETPLACE_DIR="/tmp/ht-agent-plugin-market"
-MARKETPLACE_REPO="https://gitlab.mokahr.com/devops/ht-agent-plugin-market.git"
+# 使用持久化目录（避免 /tmp 在重启后被清空）
+MARKETPLACE_DIR="${MARKETPLACE_DIR:-$HOME/.claude/marketplace/ht-agent-plugin-market}"
+# 仓库地址可通过环境变量覆盖
+MARKETPLACE_REPO="${MARKETPLACE_REPO:-https://github.com/MallocGad/ht-agent-plugin-market.git}"
 
 # Colors
 RED='\033[0;31m'

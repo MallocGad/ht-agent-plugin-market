@@ -23,25 +23,20 @@ The notification-system skill monitors user input activity and automatically sen
 
 ## How It Works
 
-The system uses a state-based monitoring approach with three hook scripts and a background daemon:
+The system uses a **three-hook architecture** with no background daemon:
 
-1. **Task Start** (`task-start.sh`): When user submits a prompt, creates a state file with task metadata
-2. **User Input Detection** (`user-input-detected.sh`): Resets the silence timer when user provides input
-3. **Task Complete** (`task-complete.sh`): Updates state when Claude responds and ensures daemon is running
-4. **Background Monitor** (`task-monitor-daemon.sh`): Daemon checks all tasks every 15 seconds and sends notifications when silence threshold is exceeded
+1. **Task Start** (`task-start.sh`): Triggered on `UserPromptSubmit`. Creates (or updates) a state file recording the task start time, prompt, and last user input time.
+2. **Task Complete** (`task-complete.sh`): Triggered on `Stop`. Records `last_response_time` — the exact moment Claude finishes responding. This is the anchor for accurate idle duration calculation.
+3. **Send Notification** (`send-notification.sh`): Triggered on `Notification(idle_prompt)`. Claude Code raises this event when it detects the user has been idle. The script reads the state file, calculates durations, and dispatches notifications to enabled channels.
 
 ### When Notifications Are Sent
 
-A notification is sent when:
-- Claude has completed a response (Stop hook triggered)
-- User has not provided new input for longer than the configured threshold (default: 15 seconds)
-- No notification has been sent for this silence period yet
+Claude Code internally determines when to fire `idle_prompt` (typically 30–60 seconds after Claude's last response with no new user input). The script then:
 
-The notification includes:
-- Original task prompt (first 50 characters)
-- Task start time
-- Total task duration
-- Current silence duration
+- Reads the session state file
+- Checks `notification_sent` to avoid duplicate alerts
+- Calculates `idle_duration = now - last_response_time` (falls back to `last_input_time` for backward compatibility)
+- Sends to all enabled channels concurrently
 
 ## Quick Start
 
@@ -86,11 +81,6 @@ Edit `~/.claude/settings.json` to add the notification hooks:
         "type": "command",
         "command": "~/.claude/scripts/system-notify/task-start.sh",
         "timeout": 5
-      },
-      {
-        "type": "command",
-        "command": "~/.claude/scripts/system-notify/user-input-detected.sh",
-        "timeout": 5
       }
     ]
   }],
@@ -98,13 +88,23 @@ Edit `~/.claude/settings.json` to add the notification hooks:
     "hooks": [{
       "type": "command",
       "command": "~/.claude/scripts/system-notify/task-complete.sh",
-      "timeout": 10
+      "timeout": 5
+    }]
+  }],
+  "Notification": [{
+    "matcher": "idle_prompt",
+    "hooks": [{
+      "type": "command",
+      "command": "~/.claude/scripts/system-notify/send-notification.sh",
+      "timeout": 5
     }]
   }]
 }
 ```
 
-The `UserPromptSubmit` hooks capture task start time and reset the silence timer on user input, while the `Stop` hook updates state when Claude responds and ensures the monitoring daemon is running.
+- **UserPromptSubmit** — records task start time and resets timer on each new user input
+- **Stop** — records `last_response_time` when Claude finishes, enabling accurate idle duration calculation
+- **Notification(idle_prompt)** — fired by Claude Code when the user is idle; dispatches the actual notification
 
 ### 4. Testing Notifications
 
@@ -713,13 +713,12 @@ Output will show success/failure for each component with detailed error messages
 ## Performance Characteristics
 
 - **Hook Overhead**: < 100ms total for all hooks per interaction
-- **State File I/O**: Single JSON file per task, automatic cleanup after 24h
-- **Daemon Resource Usage**: ~2-5 MB memory, negligible CPU (<1%)
-- **Check Interval**: 1 second (configurable)
+- **State File I/O**: Single JSON file per task, automatic cleanup after 2 hours
+- **No Daemon**: Zero background processes; all work happens in short-lived hook scripts
 - **Parallel Delivery**: Multiple notification channels execute concurrently
-- **Memory Usage**: Negligible, state stored in filesystem
-- **Network**: Only DingTalk/Lark require network (failures don't block)
-- **Scalability**: Can handle 100+ concurrent tasks efficiently
+- **Memory Usage**: Negligible — state stored in filesystem only
+- **Network**: Only DingTalk/Lark require network access (failures do not block the main workflow)
+- **Scalability**: Can handle concurrent tasks efficiently via separate per-session state files
 
 ## Security Considerations
 

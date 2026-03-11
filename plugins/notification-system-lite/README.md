@@ -183,4 +183,4 @@ find ~/.claude/plugins/cache -name "notification.log" -path "*/notification-syst
 
 ## Version
 
-1.0.0
+1.0.4
